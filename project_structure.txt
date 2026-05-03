@@ -1,0 +1,29 @@
+automatedInternship/
+├── ai/
+│   ├── __init__.py
+│   ├── cover_letter.py
+│   ├── job_matcher.py
+│   └── prompts.py
+├── frontend/
+│   ├── static/
+│   │   ├── app.js
+│   │   └── style.css
+│   └── templates/
+│       └── index.html
+├── routers/
+│   ├── __init__.py
+│   ├── cover_letter.py
+│   ├── jobs.py
+│   └── profiles.py
+├── scraper/
+│   ├── __init__.py
+│   └── crawler.py
+├── supabase/
+│   └── migrations/
+│       ├── 001_initial_schema.sql
+│       ├── 002_jobs.sql
+│       └── 003_cover_letters.sql
+├── .env.example
+├── main.py
+├── README.md
+└── requirements.txt

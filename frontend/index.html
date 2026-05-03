@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Internship Platform Dashboard</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            
+            --status-new: #94a3b8;
+            --status-matched: #3b82f6;
+            --status-applied: #22c55e;
+            --status-manual: #ef4444;
+            --status-rejected: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 { font-size: 1.5rem; font-weight: 600; }
+        h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        .btn-outline:hover { background-color: #eff6ff; }
+
+        .panel {
+            background: var(--surface);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.875rem; }
+        input, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-family: inherit;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .chip {
+            background: #e2e8f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .chip span { cursor: pointer; color: var(--text-muted); }
+        .chip span:hover { color: var(--text-main); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Table */
+        .table-wrapper { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+        th, td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+        th { font-weight: 600; color: var(--text-muted); background: #f8fafc; }
+        tbody tr { cursor: pointer; transition: background-color 0.15s; }
+        tbody tr:hover { background-color: #f1f5f9; }
+        tbody tr:nth-child(even) { background-color: #fafafa; }
+        tbody tr:nth-child(even):hover { background-color: #f1f5f9; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: white;
+        }
+        .badge.new { background-color: var(--status-new); }
+        .badge.matched { background-color: var(--status-matched); }
+        .badge.applied { background-color: var(--status-applied); }
+        .badge.manual_required { background-color: var(--status-manual); }
+        .badge.rejected { background-color: var(--status-rejected); }
+
+        /* Modal / Slide-over for Cover Letter Preview */
+        #cl-panel {
+            position: fixed;
+            top: 0; right: -400px;
+            width: 400px; max-width: 100%;
+            height: 100vh;
+            background: var(--surface);
+            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            padding: 1.5rem;
+            overflow-y: auto;
+            z-index: 50;
+        }
+        #cl-panel.open { right: 0; }
+        .cl-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .cl-close { cursor: pointer; font-size: 1.5rem; color: var(--text-muted); line-height: 1; }
+        .cl-content { white-space: pre-wrap; font-size: 0.875rem; color: var(--text-main); background: #f8fafc; padding: 1rem; border-radius: 0.375rem; border: 1px solid var(--border); min-height: 200px; }
+        
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.3); opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; z-index: 40;
+        }
+        .overlay.open { opacity: 1; pointer-events: all; }
+
+        /* Helpers */
+        .hidden { display: none; }
+        .flex { display: flex; gap: 0.5rem; align-items: center; }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Job Dashboard</h1>
+        <div class="flex">
+            <button class="btn btn-outline" id="btn-run-match">Run Matcher</button>
+            <button class="btn btn-outline" id="btn-run-scraper" disabled title="Scraper run (backend implementation pending route)">Run Scraper</button>
+        </div>
+    </header>
+
+    <section class="panel" id="profile-panel">
+        <h2>Profile Setup</h2>
+        <form id="profile-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="p-name" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="p-email" required placeholder="john@example.com">
+                </div>
+                <div class="form-group full">
+                    <label>Resume Summary</label>
+                    <textarea id="p-resume" placeholder="A brief summary of your experience..."></textarea>
+                </div>
+                <div class="form-group full">
+                    <label>Skills (comma separated, press Enter to add)</label>
+                    <input type="text" id="p-skills-input" placeholder="e.g. Python, React, SQL">
+                    <div class="chips" id="p-skills-container"></div>
+                </div>
+                <div class="form-group">
+                    <label>GitHub URL</label>
+                    <input type="url" id="p-github" placeholder="https://github.com/johndoe">
+                </div>
+                <div class="form-group">
+                    <label>LinkedIn URL</label>
+                    <input type="url" id="p-linkedin" placeholder="https://linkedin.com/in/johndoe">
+                </div>
+                <div class="form-group full">
+                    <button type="submit" class="btn">Save Profile</button>
+                    <span id="profile-status" style="margin-left: 1rem; font-size: 0.875rem; color: var(--text-muted);"></span>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Job Applications</h2>
+        
+        <div class="tabs" id="job-tabs">
+            <div class="tab active" data-filter="all">All</div>
+            <div class="tab" data-filter="matched">Matched</div>
+            <div class="tab" data-filter="applied">Applied</div>
+            <div class="tab" data-filter="manual_required">Manual Required</div>
+            <div class="tab" data-filter="new">New</div>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="jobs-table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="jobs-tbody">
+                    <!-- Rows populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<!-- Cover Letter Slide-over Panel -->
+<div class="overlay" id="overlay"></div>
+<div id="cl-panel">
+    <div class="cl-header">
+        <h3 id="cl-job-title">Cover Letter Preview</h3>
+        <div class="cl-close" id="cl-close">&times;</div>
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <span id="cl-loading" class="hidden">Loading...</span>
+        <div class="cl-content" id="cl-content"></div>
+    </div>
+    <div class="flex" style="justify-content: flex-end;">
+        <button class="btn" id="btn-apply-modal">Apply Now</button>
+    </div>
+</div>
+
+<script>
+    const API_BASE = "http://localhost:8000";
+    let currentProfileId = localStorage.getItem("profileId") || null;
+    let skillsList = [];
+    let allJobs = [];
+    let selectedJobId = null;
+
+    // --- DOM Elements ---
+    const profileForm = document.getElementById("profile-form");
+    const skillsInput = document.getElementById("p-skills-input");
+    const skillsContainer = document.getElementById("p-skills-container");
+    const profileStatus = document.getElementById("profile-status");
+    
+    const jobsTbody = document.getElementById("jobs-tbody");
+    const jobTabs = document.querySelectorAll(".tab");
+    
+    const overlay = document.getElementById("overlay");
+    const clPanel = document.getElementById("cl-panel");
+    const clClose = document.getElementById("cl-close");
+    const clContent = document.getElementById("cl-content");
+    const clLoading = document.getElementById("cl-loading");
+    const btnRunMatch = document.getElementById("btn-run-match");
+    const btnApplyModal = document.getElementById("btn-apply-modal");
+
+    // --- Initialization ---
+    async function init() {
+        if (currentProfileId) {
+            await loadProfile();
+            // We mock fetching jobs since we don't have a GET /jobs route in the spec, 
+            // but we need it. Let's assume there's a backend or we will just use dummy data 
+            // if fetch fails, but in reality we'd need a route.
+            // Wait, the spec didn't ask for a GET /jobs route.
+            // I will implement a fetch from Supabase directly via a mock or just expect a route.
+            // For now, I will add a fetch to /jobs and handle 404 gracefully.
+            fetchJobs(); 
+        }
+        renderSkills();
+    }
+
+    // --- Profile Management ---
+    skillsInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === ",") {
+            e.preventDefault();
+            const val = skillsInput.value.trim().replace(/,$/, '');
+            if (val && !skillsList.includes(val)) {
+                skillsList.push(val);
+                renderSkills();
+                skillsInput.value = "";
+            }
+        }
+    });
+
+    function renderSkills() {
+        skillsContainer.innerHTML = "";
+        skillsList.forEach((skill, index) => {
+            const el = document.createElement("div");
+            el.className = "chip";
+            el.innerHTML = `${skill} <span onclick="removeSkill(${index})">&times;</span>`;
+            skillsContainer.appendChild(el);
+        });
+    }
+
+    window.removeSkill = (index) => {
+        skillsList.splice(index, 1);
+        renderSkills();
+    };
+
+    profileForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        profileStatus.textContent = "Saving...";
+        
+        const payload = {
+            name: document.getElementById("p-name").value,
+            email: document.getElementById("p-email").value,
+            resume_text: document.getElementById("p-resume").value,
+            github_url: document.getElementById("p-github").value || null,
+            linkedin_url: document.getElementById("p-linkedin").value || null,
+            skills: skillsList.map(s => ({ skill_name: s }))
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/profile`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error("Failed to save profile");
+            const data = await res.json();
+            currentProfileId = data.id;
+            localStorage.setItem("profileId", currentProfileId);
+            profileStatus.textContent = "Saved successfully!";
+            setTimeout(() => profileStatus.textContent = "", 3000);
+        } catch (err) {
+            profileStatus.textContent = "Error saving.";
+            console.error(err);
+        }
+    });
+
+    async function loadProfile() {
+        try {
+            const res = await fetch(`${API_BASE}/profile/${currentProfileId}`);
+            if (!res.ok) throw new Error("Profile not found");
+            const data = await res.json();
+            
+            document.getElementById("p-name").value = data.name || "";
+            document.getElementById("p-email").value = data.email || "";
+            document.getElementById("p-resume").value = data.resume_text || "";
+            document.getElementById("p-github").value = data.github_url || "";
+            document.getElementById("p-linkedin").value = data.linkedin_url || "";
+            
+            if (data.skills) {
+                skillsList = data.skills.map(s => s.skill_name);
+                renderSkills();
+            }
+        } catch (err) {
+            console.error("Load profile err", err);
+            localStorage.removeItem("profileId");
+            currentProfileId = null;
+        }
+    }
+
+    // --- Job Fetching & Display ---
+    async function fetchJobs() {
+        try {
+            const res = await fetch(`${API_BASE}/jobs`);
+            if (res.ok) {
+                allJobs = await res.json();
+                renderJobs(document.querySelector(".tab.active").dataset.filter);
+            }
+        } catch (e) {
+            console.error("Failed to fetch jobs:", e);
+        }
+    }
+
+    function renderJobs(filter) {
+        jobsTbody.innerHTML = "";
+        const filtered = filter === "all" ? allJobs : allJobs.filter(j => j.status === filter);
+        
+        filtered.forEach(job => {
+            const tr = document.createElement("tr");
+            tr.onclick = (e) => {
+                if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+                    openCoverLetterPanel(job);
+                }
+            };
+            
+            tr.innerHTML = `
+                <td><strong>${job.title}</strong></td>
+                <td>${job.company}</td>
+                <td>${job.score > 0 ? job.score : '-'}</td>
+                <td><span class="badge ${job.status}">${job.status.replace('_', ' ')}</span></td>
+                <td class="flex">
+                    <a href="${job.apply_url}" target="_blank" onclick="event.stopPropagation()" class="btn btn-outline" style="padding: 0.25rem 0.5rem; text-decoration: none;">View</a>
+                    ${job.status === 'matched' ? `<button class="btn" style="padding: 0.25rem 0.5rem;" onclick="applyToJob('${job.id}'); event.stopPropagation();">Apply</button>` : ''}
+                </td>
+            `;
+            jobsTbody.appendChild(tr);
+        });
+    }
+
+    jobTabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            jobTabs.forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            renderJobs(tab.dataset.filter);
+        });
+    });
+
+    // --- Actions ---
+    btnRunMatch.addEventListener("click", async () => {
+        if (!currentProfileId) return alert("Save profile first!");
+        btnRunMatch.textContent = "Running...";
+        btnRunMatch.disabled = true;
+        try {
+            const res = await fetch(`${API_BASE}/match/${currentProfileId}`, { method: "POST" });
+            if(res.ok) {
+                const matched = await res.json();
+                // Update local list
+                matched.forEach(m => {
+                    const idx = allJobs.findIndex(j => j.id === m.id);
+                    if (idx > -1) { allJobs[idx] = m; } else { allJobs.push(m); }
+                });
+                renderJobs(document.querySelector(".tab.active").dataset.filter);
+            }
+        } catch(e) {
+            console.error(e);
+            alert("Match failed");
+        } finally {
+            btnRunMatch.textContent = "Run Matcher";
+            btnRunMatch.disabled = false;
+        }
+    });
+
+    window.applyToJob = async (jobId) => {
+        if (!currentProfileId) return alert("Save profile first!");
+        try {
+            const res = await fetch(`${API_BASE}/apply/${jobId}/${currentProfileId}`, { method: "POST" });
+            if (!res.ok) throw new Error("Apply failed");
+            alert("Application triggered!");
+            // Update status locally
+            const job = allJobs.find(j => j.id === jobId);
+            if(job) { job.status = "applied"; renderJobs(document.querySelector(".tab.active").dataset.filter); }
+        } catch(e) {
+            console.error(e);
+            alert("Failed to trigger application");
+        }
+    };
+
+    // --- Cover Letter Panel ---
+    function openCoverLetterPanel(job) {
+        if (!currentProfileId) return alert("Save profile first!");
+        selectedJobId = job.id;
+        document.getElementById("cl-job-title").textContent = `CL: ${job.company}`;
+        clContent.textContent = "";
+        clLoading.classList.remove("hidden");
+        overlay.classList.add("open");
+        clPanel.classList.add("open");
+        btnApplyModal.style.display = job.status === 'matched' ? 'block' : 'none';
+
+        fetch(`${API_BASE}/cover-letter/${job.id}/${currentProfileId}`)
+            .then(res => res.json())
+            .then(data => {
+                clLoading.classList.add("hidden");
+                clContent.textContent = data.content || "No cover letter generated.";
+            })
+            .catch(err => {
+                clLoading.classList.add("hidden");
+                clContent.textContent = "Failed to fetch cover letter.";
+            });
+    }
+
+    function closePanel() {
+        overlay.classList.remove("open");
+        clPanel.classList.remove("open");
+        selectedJobId = null;
+    }
+
+    clClose.addEventListener("click", closePanel);
+    overlay.addEventListener("click", closePanel);
+    
+    btnApplyModal.addEventListener("click", () => {
+        if (selectedJobId) {
+            applyToJob(selectedJobId);
+            closePanel();
+        }
+    });
+
+    init();
+</script>
+</body>
+</html>

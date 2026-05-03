@@ -1,0 +1,44 @@
+# ─── Python ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ─── Virtual Environment ─────────────────────────────
+venv/
+.venv/
+env/
+
+# ─── Environment & Secrets ───────────────────────────
+.env
+*.key
+
+# ─── Database ────────────────────────────────────────
+*.db
+*.sqlite3
+
+# ─── Logs ────────────────────────────────────────────
+logs/
+*.log
+
+# ─── OS Files ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDE / Editor ────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── One-off utility scripts (not part of core app) ─
+fix_profile.py
+extract_resume.py
+reset_jobs.py
+setup_profile.py
+test_db.py
