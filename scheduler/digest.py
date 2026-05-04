@@ -5,7 +5,7 @@ from apply.email_sender import send_application_email
 
 logger = logging.getLogger(__name__)
 
-def send_daily_digest(profile: Dict[str, Any], stats: Dict[str, int], applied_jobs: List[Dict[str, Any]]) -> bool:
+def send_daily_digest(profile: Dict[str, Any], stats: Dict[str, int], applied_jobs: List[Dict[str, Any]], followups_sent: List[Dict[str, Any]] = None) -> bool: # CHANGED
     """
     Builds and sends a daily summary email to the user with: 
     number of new jobs found, number matched, number applied, 
@@ -35,6 +35,14 @@ def send_daily_digest(profile: Dict[str, Any], stats: Dict[str, int], applied_jo
             body += f"- {title} at {company} (via {method})\n"
     else:
         body += "No applications were submitted today.\n"
+        
+    if followups_sent: # NEW
+        body += "\n🔁 FOLLOW-UPS SENT TODAY:\n" # NEW
+        for f in followups_sent: # NEW
+            f_company = f.get('company', 'Unknown Company') # NEW
+            f_title = f.get('title', 'Unknown Title') # NEW
+            body += f"- {f_title} at {f_company}\n" # NEW
+
         
     body += "\nGood luck!\nAutomated Internship Platform"
 

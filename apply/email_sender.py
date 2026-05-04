@@ -1,3 +1,4 @@
+### File: apply/email_sender.py
 import os
 import httpx
 import logging
@@ -7,7 +8,7 @@ from typing import Optional
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def send_application_email(to_email: str, subject: str, body: str, resume_path: Optional[str] = None) -> bool:
+def send_application_email(to_email: str, subject: str, body: str, resume_path: Optional[str] = None, cc_self: bool = True, profile_email: Optional[str] = None) -> bool: # CHANGED
     """
     Sends an application email via Brevo (Sendinblue) HTTP API.
     Bypasses SMTP completely, avoiding regional ISP port bans.
@@ -34,6 +35,9 @@ def send_application_email(to_email: str, subject: str, body: str, resume_path: 
         "textContent": body
     }
     
+    if cc_self and profile_email: # NEW
+        payload["cc"] = [{"email": profile_email}] # NEW
+    
     if resume_path and os.path.exists(resume_path):
         import mimetypes
         ctype, _ = mimetypes.guess_type(resume_path)
@@ -56,7 +60,8 @@ def send_application_email(to_email: str, subject: str, body: str, resume_path: 
             response = client.post(url, headers=headers, json=payload)
             response.raise_for_status()
             
-        logger.info(f"Successfully sent application email to {to_email} via HTTP API")
+        cc_msg = f" (CC: {profile_email})" if cc_self and profile_email else "" # NEW
+        logger.info(f"Email sent to {to_email}{cc_msg}") # CHANGED
         return True
     except Exception as e:
         logger.error(f"Failed to send email to {to_email} via HTTP API: {e}")
